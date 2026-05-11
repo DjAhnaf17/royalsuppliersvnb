@@ -125,36 +125,62 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1200); 
     });
 
-    // Initialize Swiper Coverflow Gallery with Continuous Marquee Effect
-    if (typeof Swiper !== 'undefined') {
-        const swiper = new Swiper('.gallery-swiper', {
-            effect: 'coverflow',
-            grabCursor: true,
-            centeredSlides: true,
-            slidesPerView: 'auto',
-            loop: true,
-            speed: 3000,
-            autoplay: {
-                delay: 0,
-                disableOnInteraction: false,
-            },
-            coverflowEffect: {
-                rotate: 20,
-                stretch: 0,
-                depth: 100,
-                modifier: 1,
-                slideShadows: true,
-            },
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-        });
-    }
+    // Dynamic Gallery Fetch and Initialization
+    fetch('static/gallery.json')
+        .then(response => {
+            if (!response.ok) throw new Error("Network response was not ok");
+            return response.json();
+        })
+        .then(images => {
+            const wrapper = document.getElementById('dynamic-gallery-wrapper');
+            if (wrapper && images.length > 0) {
+                images.forEach(img => {
+                    const slide = document.createElement('div');
+                    slide.className = 'swiper-slide gallery-slide';
+                    slide.innerHTML = `<img src="static/ImagesCarousel/${img}" alt="Event Decor">`;
+                    wrapper.appendChild(slide);
+                });
+            } else if (wrapper) {
+                // Fallback images if json is empty or fails
+                wrapper.innerHTML = `
+                    <div class="swiper-slide gallery-slide"><img src="static/ImagesCarousel/image1.jpg" alt="Event Decor"></div>
+                    <div class="swiper-slide gallery-slide"><img src="static/ImagesCarousel/image2.jpg" alt="Event Decor"></div>
+                    <div class="swiper-slide gallery-slide"><img src="static/ImagesCarousel/image3.jpg" alt="Event Decor"></div>
+                `;
+            }
+            
+            // Initialize Swiper Coverflow Gallery with Continuous Marquee Effect
+            if (typeof Swiper !== 'undefined') {
+                const swiper = new Swiper('.gallery-swiper', {
+                    effect: 'coverflow',
+                    grabCursor: true,
+                    centeredSlides: true,
+                    slidesPerView: 'auto',
+                    loop: true,
+                    speed: 3000,
+                    autoplay: {
+                        delay: 0,
+                        disableOnInteraction: false,
+                    },
+                    coverflowEffect: {
+                        rotate: 20,
+                        stretch: 0,
+                        depth: 100,
+                        modifier: 1,
+                        slideShadows: true,
+                    },
+                    pagination: {
+                        el: '.swiper-pagination',
+                        clickable: true,
+                    },
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                });
+            }
+        })
+        .catch(error => console.error("Error loading gallery:", error));
 
     // Royal Golden Confetti Animation in Hero Section
     const confettiCanvas = document.getElementById('confetti-canvas');
