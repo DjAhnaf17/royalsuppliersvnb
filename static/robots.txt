@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://royalsuppliersvnb.com/sitemap.xml
+Sitemap: https://royalsuppliersvnb.in/sitemap.xml

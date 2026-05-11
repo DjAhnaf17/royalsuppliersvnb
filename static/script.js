@@ -137,15 +137,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 images.forEach(img => {
                     const slide = document.createElement('div');
                     slide.className = 'swiper-slide gallery-slide';
-                    slide.innerHTML = `<img src="static/ImagesCarousel/${img}" alt="Event Decor">`;
+                    slide.innerHTML = `<img src="static/ImagesCarousel/${img}" alt="Event Decor" onerror="this.src='https://via.placeholder.com/800x600/0b0f19/d4af37?text=Image+Not+Found'">`;
                     wrapper.appendChild(slide);
                 });
             } else if (wrapper) {
-                // Fallback images if json is empty or fails
+                // Beautiful placeholders if gallery is completely empty
                 wrapper.innerHTML = `
-                    <div class="swiper-slide gallery-slide"><img src="static/ImagesCarousel/image1.jpg" alt="Event Decor"></div>
-                    <div class="swiper-slide gallery-slide"><img src="static/ImagesCarousel/image2.jpg" alt="Event Decor"></div>
-                    <div class="swiper-slide gallery-slide"><img src="static/ImagesCarousel/image3.jpg" alt="Event Decor"></div>
+                    <div class="swiper-slide gallery-slide"><img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800&auto=format&fit=crop" alt="Premium Decor"></div>
+                    <div class="swiper-slide gallery-slide"><img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?q=80&w=800&auto=format&fit=crop" alt="Luxury Event"></div>
+                    <div class="swiper-slide gallery-slide"><img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop" alt="Wedding Setup"></div>
                 `;
             }
             

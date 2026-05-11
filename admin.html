@@ -15,9 +15,12 @@
             background-color: #0b0f19;
             color: #ffffff;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        }
+        .admin-header {
+            background: rgba(11, 15, 25, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
         }
         .admin-card {
             background: rgba(255, 255, 255, 0.03);
@@ -25,8 +28,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             padding: 2rem;
-            width: 100%;
-            max-width: 500px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         .form-control {
@@ -54,41 +55,116 @@
         .text-gold {
             color: #d4af37;
         }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .gallery-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .delete-btn:hover {
+            background: #bb2d3b;
+        }
+        #login-section {
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
 
+    <!-- Header -->
+    <header class="admin-header d-none" id="admin-header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 fw-bold"><span class="text-gold">Admin</span> Portal</h4>
+            <div>
+                <a href="index.html" class="btn btn-outline-light btn-sm me-2">View Site</a>
+                <button class="btn btn-outline-danger btn-sm" id="logout-btn">Logout</button>
+            </div>
+        </div>
+    </header>
+
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="admin-card">
-                    <div class="text-center mb-4">
-                        <h2 class="fw-bold"><span class="text-gold">Admin</span> Portal</h2>
-                        <p class="text-muted small">Upload new images to your dynamic gallery</p>
-                    </div>
-
-                    <div id="alert-box" class="alert d-none" role="alert"></div>
-
-                    <form id="upload-form">
-                        <div class="mb-3">
-                            <label for="pat-token" class="form-label text-light small fw-semibold">GitHub Personal Access Token (PAT)</label>
-                            <input type="password" class="form-control" id="pat-token" required placeholder="ghp_xxxxxxxxxxxxxxxxx">
+        
+        <!-- Login Section -->
+        <div id="login-section" class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="admin-card text-center">
+                    <h3 class="fw-bold mb-1"><span class="text-gold">Admin</span> Login</h3>
+                    <p class="text-muted small mb-4">Enter your GitHub PAT to continue</p>
+                    <form id="login-form">
+                        <div class="mb-3 text-start">
+                            <input type="password" class="form-control form-control-lg" id="pat-input" required placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
                         </div>
-                        <div class="mb-4">
-                            <label for="gallery-image" class="form-label text-light small fw-semibold">Select Image (JPG, PNG)</label>
-                            <input class="form-control" type="file" id="gallery-image" accept="image/png, image/jpeg" required>
-                        </div>
-                        <button type="submit" class="btn btn-gold w-100" id="upload-btn">
-                            <i class="bi bi-cloud-arrow-up-fill me-2"></i> Upload to Gallery
-                        </button>
+                        <button type="submit" class="btn btn-gold w-100 btn-lg">Secure Login <i class="bi bi-arrow-right ms-2"></i></button>
                     </form>
-                    
-                    <div class="mt-4 text-center">
-                        <a href="index.html" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left"></i> Back to main site</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="d-none pb-5">
+            <div id="alert-box" class="alert d-none mb-4" role="alert"></div>
+
+            <div class="row g-4">
+                <!-- Upload Column -->
+                <div class="col-lg-4">
+                    <div class="admin-card position-sticky" style="top: 20px;">
+                        <h5 class="fw-bold mb-3">Upload New Image</h5>
+                        <form id="upload-form">
+                            <div class="mb-3">
+                                <label for="gallery-image" class="form-label text-light small fw-semibold">Select File (JPG, PNG)</label>
+                                <input class="form-control bg-dark" type="file" id="gallery-image" accept="image/png, image/jpeg" required>
+                            </div>
+                            <button type="submit" class="btn btn-gold w-100" id="upload-btn">
+                                <i class="bi bi-cloud-arrow-up-fill me-2"></i> Upload to Gallery
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Gallery Column -->
+                <div class="col-lg-8">
+                    <div class="admin-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold mb-0">Current Gallery</h5>
+                            <button class="btn btn-sm btn-outline-light" id="refresh-gallery-btn">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="gallery-grid" class="gallery-grid">
+                            <!-- Images will load here -->
+                            <div class="text-center w-100 text-muted py-5 col-span-full">Loading gallery...</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 
     <script src="static/admin.js"></script>
