@@ -125,62 +125,157 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1200); 
     });
 
-    // Dynamic Gallery Fetch and Initialization
-    fetch('static/gallery.json')
-        .then(response => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.json();
-        })
-        .then(images => {
-            const wrapper = document.getElementById('dynamic-gallery-wrapper');
-            if (wrapper && images.length > 0) {
-                images.forEach(img => {
-                    const slide = document.createElement('div');
-                    slide.className = 'swiper-slide gallery-slide';
-                    slide.innerHTML = `<img src="static/ImagesCarousel/${img}" alt="Event Decor" onerror="this.src='https://via.placeholder.com/800x600/0b0f19/d4af37?text=Image+Not+Found'">`;
-                    wrapper.appendChild(slide);
-                });
-            } else if (wrapper) {
-                // Beautiful placeholders if gallery is completely empty
-                wrapper.innerHTML = `
-                    <div class="swiper-slide gallery-slide"><img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800&auto=format&fit=crop" alt="Premium Decor"></div>
-                    <div class="swiper-slide gallery-slide"><img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?q=80&w=800&auto=format&fit=crop" alt="Luxury Event"></div>
-                    <div class="swiper-slide gallery-slide"><img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop" alt="Wedding Setup"></div>
-                `;
+    // Initialize Swiper Coverflow Gallery with Continuous Marquee Effect
+    let gallerySwiper;
+    if (typeof Swiper !== 'undefined') {
+        gallerySwiper = new Swiper('.gallery-swiper', {
+            effect: 'coverflow',
+            grabCursor: true,
+            centeredSlides: true,
+            slidesPerView: 'auto',
+            loop: true,
+            speed: 3000,
+            autoplay: {
+                delay: 0,
+                disableOnInteraction: false,
+            },
+            coverflowEffect: {
+                rotate: 20,
+                stretch: 0,
+                depth: 100,
+                modifier: 1,
+                slideShadows: true,
+            },
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+        });
+    }
+
+    // 8. Premium Image Lightbox Logic
+    const lightboxModal = document.getElementById('lightbox-modal');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxCaption = document.getElementById('lightbox-caption');
+    const lightboxClose = document.getElementById('lightbox-close');
+    const lightboxPrev = document.getElementById('lightbox-prev');
+    const lightboxNext = document.getElementById('lightbox-next');
+
+    // Collect all unique gallery images from Swiper slides (excluding duplicates created by Swiper)
+    let galleryImages = Array.from(document.querySelectorAll('.gallery-swiper .gallery-slide:not(.swiper-slide-duplicate) img'));
+    let currentImageIndex = 0;
+
+    function openLightbox(index) {
+        if (galleryImages.length === 0) return;
+        currentImageIndex = index;
+        const img = galleryImages[currentImageIndex];
+        lightboxImg.src = img.src;
+        lightboxCaption.textContent = img.alt || "Royal Event Decor";
+        lightboxModal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Disable background scrolling
+        
+        // Modal scale-up animation
+        gsap.fromTo(lightboxImg, 
+            { scale: 0.8, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(1.5)" }
+        );
+    }
+
+    function closeLightbox() {
+        if (!lightboxModal) return;
+        gsap.to(lightboxImg, {
+            scale: 0.8,
+            opacity: 0,
+            duration: 0.25,
+            ease: "power2.in",
+            onComplete: () => {
+                lightboxModal.classList.remove('active');
+                document.body.style.overflow = ''; // Re-enable background scrolling
             }
-            
-            // Initialize Swiper Coverflow Gallery with Continuous Marquee Effect
-            if (typeof Swiper !== 'undefined') {
-                const swiper = new Swiper('.gallery-swiper', {
-                    effect: 'coverflow',
-                    grabCursor: true,
-                    centeredSlides: true,
-                    slidesPerView: 'auto',
-                    loop: true,
-                    speed: 3000,
-                    autoplay: {
-                        delay: 0,
-                        disableOnInteraction: false,
-                    },
-                    coverflowEffect: {
-                        rotate: 20,
-                        stretch: 0,
-                        depth: 100,
-                        modifier: 1,
-                        slideShadows: true,
-                    },
-                    pagination: {
-                        el: '.swiper-pagination',
-                        clickable: true,
-                    },
-                    navigation: {
-                        nextEl: '.swiper-button-next',
-                        prevEl: '.swiper-button-prev',
-                    },
-                });
+        });
+    }
+
+    function showPrevImage() {
+        if (galleryImages.length === 0) return;
+        currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+        const img = galleryImages[currentImageIndex];
+        gsap.to(lightboxImg, {
+            opacity: 0,
+            scale: 0.95,
+            duration: 0.15,
+            onComplete: () => {
+                lightboxImg.src = img.src;
+                lightboxCaption.textContent = img.alt || "Royal Event Decor";
+                gsap.to(lightboxImg, { opacity: 1, scale: 1, duration: 0.25 });
             }
-        })
-        .catch(error => console.error("Error loading gallery:", error));
+        });
+    }
+
+    // Preload helper to prevent white flash when sliding
+    function preloadImage(url) {
+        const temp = new Image();
+        temp.src = url;
+    }
+
+    function showNextImage() {
+        if (galleryImages.length === 0) return;
+        currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+        const img = galleryImages[currentImageIndex];
+        gsap.to(lightboxImg, {
+            opacity: 0,
+            scale: 0.95,
+            duration: 0.15,
+            onComplete: () => {
+                lightboxImg.src = img.src;
+                lightboxCaption.textContent = img.alt || "Royal Event Decor";
+                gsap.to(lightboxImg, { opacity: 1, scale: 1, duration: 0.25 });
+            }
+        });
+    }
+
+    // Delegate click events on the Swiper wrapper to handle cloned slides correctly
+    const swiperWrapper = document.getElementById('dynamic-gallery-wrapper');
+    if (swiperWrapper) {
+        swiperWrapper.addEventListener('click', (e) => {
+            if (e.target.tagName === 'IMG') {
+                const clickedSrc = e.target.getAttribute('src');
+                const origIndex = galleryImages.findIndex(img => img.getAttribute('src') === clickedSrc);
+                if (origIndex !== -1) {
+                    openLightbox(origIndex);
+                } else {
+                    lightboxImg.src = e.target.src;
+                    lightboxCaption.textContent = e.target.alt || "Royal Event Decor";
+                    lightboxModal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+        });
+    }
+
+    if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+    if (lightboxPrev) lightboxPrev.addEventListener('click', showPrevImage);
+    if (lightboxNext) lightboxNext.addEventListener('click', showNextImage);
+
+    if (lightboxModal) {
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal) {
+                closeLightbox();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (!lightboxModal || !lightboxModal.classList.contains('active')) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') showPrevImage();
+        if (e.key === 'ArrowRight') showNextImage();
+    });
+
+
 
     // Royal Golden Confetti Animation in Hero Section
     const confettiCanvas = document.getElementById('confetti-canvas');
@@ -256,81 +351,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 5. Customer Enquiry Form Submission to Formspree
-    const enquiryForm = document.getElementById('enquiry-form');
-    if(enquiryForm) {
-        enquiryForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent page refresh
 
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...';
-            submitBtn.disabled = true;
-
-            const alertBox = document.getElementById('form-alert');
-
-            // Create FormData from the form
-            const formData = new FormData(this);
-
-            // Send POST request to Formspree
-            fetch('https://formspree.io/f/xaqvabkz', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    alertBox.classList.remove('d-none', 'alert-danger');
-                    alertBox.classList.add('alert-success');
-                    alertBox.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> Enquiry sent successfully! We will contact you soon.';
-                    enquiryForm.reset();
-                } else {
-                    throw new Error('Form submission failed');
-                }
-                
-                // Show pop effect on the alert
-                anime({
-                    targets: alertBox,
-                    scale: [0.9, 1],
-                    opacity: [0, 1],
-                    duration: 600,
-                    ease: 'easeOutElastic(1, .8)'
-                });
-
-                // Hide the alert after 5 seconds
-                setTimeout(() => {
-                    anime({
-                        targets: alertBox,
-                        opacity: 0,
-                        duration: 500,
-                        complete: () => {
-                            alertBox.classList.add('d-none');
-                            alertBox.style.opacity = 1;
-                        }
-                    })
-                }, 5000);
-            })
-            .catch(error => {
-                alertBox.classList.remove('d-none', 'alert-success');
-                alertBox.classList.add('alert-danger');
-                alertBox.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i> Error sending enquiry. Please try again.';
-                
-                anime({
-                    targets: alertBox,
-                    scale: [0.9, 1],
-                    opacity: [0, 1],
-                    duration: 600,
-                    ease: 'easeOutElastic(1, .8)'
-                });
-            })
-            .finally(() => {
-                submitBtn.innerHTML = originalBtnText;
-                submitBtn.disabled = false;
-            });
-        });
-    }
 
     // 6. Chatbot Toggle Logic & Redirects
     const chatbotToggle = document.getElementById('chatbot-toggle');
